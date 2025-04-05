@@ -21,7 +21,7 @@ export function TaxCalculatorForm({ onCalculate, clearResults }: TaxCalculatorFo
     const [expenses, setExpenses] = useState<string>('');
     const [taxForm, setTaxForm] = useState<TaxFormType>('skala');
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!income || isNaN(Number(income)) || Number(income) < 0) {
             toast({
                 title: "Błąd",
@@ -31,6 +31,23 @@ export function TaxCalculatorForm({ onCalculate, clearResults }: TaxCalculatorFo
             return;
         }
 
+        if (!expenses || isNaN(Number(expenses)) || Number(expenses) < 0) {
+            toast({
+                title: "Błąd",
+                description: "Wprowadź prawidłową wartość kosztów.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if ((Number(income) - Number(expenses)) <= 0) {
+            toast({
+                title: "Błąd",
+                description: "Dochód nie może być mniejszy niż 0.",
+                variant: "destructive",
+            });
+            return;
+        }
         onCalculate(Number(income), Number(expenses) || 0, taxForm);
     };
 
@@ -63,8 +80,9 @@ export function TaxCalculatorForm({ onCalculate, clearResults }: TaxCalculatorFo
                         <CircleDollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                         <Input
                             id="income"
-                            placeholder="np. 10000"
+                            placeholder="25000"
                             className="pl-10"
+                            type='number'
                             value={income}
                             onChange={(e) => setIncome(e.target.value)}
                         />
@@ -79,8 +97,9 @@ export function TaxCalculatorForm({ onCalculate, clearResults }: TaxCalculatorFo
                         <CircleDollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                         <Input
                             id="expenses"
-                            placeholder="np. 3000"
+                            placeholder="1000"
                             className="pl-10"
+                            type='number'
                             value={expenses}
                             onChange={(e) => setExpenses(e.target.value)}
                         />

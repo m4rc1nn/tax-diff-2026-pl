@@ -1,6 +1,6 @@
 'use client';
 
-import { TaxResult } from '@/types/tax';
+import { TaxFormType, TaxResult } from '@/types/tax';
 import { ArrowRight, TrendingDown, TrendingUp } from 'lucide-react';
 import { calculateTax, formatCurrency, getTaxFormName } from '@/lib/tax-calculator';
 
@@ -63,13 +63,13 @@ export function TaxCalculatorResults({ result }: TaxCalculatorResultsProps) {
                             <p className="mb-2">Składka zdrowotna od 2026 przy obecnej formie opodatkowania: <span className="font-medium">{formatCurrency(result.futureTax)}</span></p>
                         </div>
 
-                        {result.bestFutureTaxForm !== result.currentTaxForm ? (
+                        {!result.bestFutureTaxForm.includes(result.currentTaxForm) && (result.futureTax - result.bestFutureTaxAmount) > 0 ? (
                             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
                                 <h4 className="text-base font-semibold flex items-center gap-1 text-green-700">
                                     <ArrowRight className="h-4 w-4" /> Zalecana zmiana formy opodatkowania
                                 </h4>
                                 <div className="mt-2 space-y-2">
-                                    <p>Najkorzystniejsza forma opodatkowania od 2026: <span className="font-medium">{getTaxFormName(result.bestFutureTaxForm)}</span></p>
+                                    <p>Najkorzystniejsza forma opodatkowania od 2026: <span className="font-medium">{result.bestFutureTaxForm.map((taxForm: TaxFormType) => getTaxFormName(taxForm)).join(", ")}</span></p>
                                     <p>Składka zdrowotna po zmianie: <span className="font-medium">{formatCurrency(result.bestFutureTaxAmount)}</span></p>
                                     <p className="text-green-700 font-medium">
                                         Możesz zaoszczędzić: {formatCurrency(result.futureTax - result.bestFutureTaxAmount)} miesięcznie
@@ -82,7 +82,7 @@ export function TaxCalculatorResults({ result }: TaxCalculatorResultsProps) {
                                     <ArrowRight className="h-4 w-4" /> Aktualna forma opodatkowania jest optymalna
                                 </h4>
                                 <p className="mt-2">
-                                    Dla Twojego dochodu {getTaxFormName(result.bestFutureTaxForm)} będzie nadal najkorzystniejszą formą opodatkowania od 2026 roku.
+                                    Dla Twojego dochodu <span className='underline'>{getTaxFormName(result.currentTaxForm)}</span> będzie nadal najkorzystniejszą formą opodatkowania od 2026 roku.
                                 </p>
                             </div>
                         )}
@@ -100,7 +100,7 @@ export function TaxCalculatorResults({ result }: TaxCalculatorResultsProps) {
                                     return (
                                         <div key={form} className="flex justify-between py-1 border-b">
                                             <span>{getTaxFormName(form)}:</span>
-                                            <span className={`font-medium ${result.bestFutureTaxForm === form ? 'text-green-600' : ''}`}>
+                                            <span className={`font-medium ${result.bestFutureTaxForm?.includes(form) ? 'text-green-600' : ''}`}>
                                                 {formatCurrency(tax)}
                                             </span>
                                         </div>

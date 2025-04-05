@@ -9,7 +9,7 @@ export interface TaxResult {
   futureTax: number;
   difference: number;
   percentChange: number;
-  bestFutureTaxForm?: TaxFormType;
+  bestFutureTaxForm?: TaxFormType[];
   bestFutureTaxAmount?: number;
 }
 
