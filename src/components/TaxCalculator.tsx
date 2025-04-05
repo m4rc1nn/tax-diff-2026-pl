@@ -229,6 +229,31 @@ const TaxCalculator = () => {
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid gap-6 md:grid-cols-2">
+            {/* Form selection moved to the top */}
+            <div className="md:col-span-2">
+              <Label className="text-base font-medium mb-2 block">
+                Forma opodatkowania
+              </Label>
+              <RadioGroup
+                value={taxForm}
+                onValueChange={(value) => setTaxForm(value as TaxFormType)}
+                className="grid md:grid-cols-3 gap-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="skala" id="skala" />
+                  <Label htmlFor="skala">Skala podatkowa</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="liniowka" id="liniowka" />
+                  <Label htmlFor="liniowka">Podatek liniowy</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="ryczalt" id="ryczalt" />
+                  <Label htmlFor="ryczalt">Ryczałt</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <div>
               <Label htmlFor="income" className="text-base font-medium mb-2 block">
                 Miesięczny przychód brutto (PLN)
@@ -265,30 +290,6 @@ const TaxCalculator = () => {
                   <span>Przy ryczałcie koszty nie są obecnie brane pod uwagę przy wyliczaniu składki, ale będą wykorzystane w kalkulacji optymalnej formy na 2026.</span>
                 </div>
               )}
-            </div>
-
-            <div className="md:col-span-2">
-              <Label className="text-base font-medium mb-2 block">
-                Forma opodatkowania
-              </Label>
-              <RadioGroup
-                value={taxForm}
-                onValueChange={(value) => setTaxForm(value as TaxFormType)}
-                className="grid md:grid-cols-3 gap-3"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="skala" id="skala" />
-                  <Label htmlFor="skala">Skala podatkowa</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="liniowka" id="liniowka" />
-                  <Label htmlFor="liniowka">Podatek liniowy</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ryczalt" id="ryczalt" />
-                  <Label htmlFor="ryczalt">Ryczałt</Label>
-                </div>
-              </RadioGroup>
             </div>
           </div>
 
