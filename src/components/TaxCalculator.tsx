@@ -7,12 +7,14 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { CircleDollarSign, TrendingDown, TrendingUp, ArrowRight } from 'lucide-react';
+import { CircleDollarSign, TrendingDown, TrendingUp, ArrowRight, AlertCircle } from 'lucide-react';
 
 type TaxFormType = 'skala' | 'liniowka' | 'ryczalt';
 
 interface TaxResult {
   income: number;
+  expenses: number;
+  netIncome: number;
   currentTax: number;
   futureTax: number;
   difference: number;
@@ -24,50 +26,53 @@ interface TaxResult {
 const TaxCalculator = () => {
   const { toast } = useToast();
   const [income, setIncome] = useState<string>('');
+  const [expenses, setExpenses] = useState<string>('');
   const [taxForm, setTaxForm] = useState<TaxFormType>('skala');
   const [result, setResult] = useState<TaxResult | null>(null);
   const [showResults, setShowResults] = useState(false);
 
   // Tax calculation function based on the provided image data
-  const calculateTax = (amount: number, type: TaxFormType, year: 'current' | 'future'): number => {
+  const calculateTax = (amount: number, expenses: number, type: TaxFormType, year: 'current' | 'future'): number => {
     const numericAmount = Number(amount);
+    // For scale and linear tax, calculate based on net income (income - expenses)
+    const netAmount = type !== 'ryczalt' ? Math.max(0, numericAmount - expenses) : numericAmount;
     
     // Current year tax calculations
     if (year === 'current') {
       if (type === 'skala') {
-        if (numericAmount <= 0) return 0;
-        if (numericAmount <= 2000) return 314.96;
-        if (numericAmount <= 4666) return 419.94;
-        if (numericAmount <= 5000) return 450.00;
-        if (numericAmount <= 8000) return 720.00;
-        if (numericAmount <= 10000) return 900.00;
-        if (numericAmount <= 15000) return 1350.00;
-        if (numericAmount <= 20000) return 1800.00;
-        if (numericAmount <= 30000) return 2700.00;
-        if (numericAmount <= 40000) return 3600.00;
-        if (numericAmount <= 50000) return 4500.00;
-        if (numericAmount <= 60000) return 5400.00;
-        if (numericAmount <= 80000) return 7200.00;
-        if (numericAmount <= 100000) return 9000.00;
-        if (numericAmount <= 150000) return 13500.00;
-        if (numericAmount <= 200000) return 18000.00;
+        if (netAmount <= 0) return 0;
+        if (netAmount <= 2000) return 314.96;
+        if (netAmount <= 4666) return 419.94;
+        if (netAmount <= 5000) return 450.00;
+        if (netAmount <= 8000) return 720.00;
+        if (netAmount <= 10000) return 900.00;
+        if (netAmount <= 15000) return 1350.00;
+        if (netAmount <= 20000) return 1800.00;
+        if (netAmount <= 30000) return 2700.00;
+        if (netAmount <= 40000) return 3600.00;
+        if (netAmount <= 50000) return 4500.00;
+        if (netAmount <= 60000) return 5400.00;
+        if (netAmount <= 80000) return 7200.00;
+        if (netAmount <= 100000) return 9000.00;
+        if (netAmount <= 150000) return 13500.00;
+        if (netAmount <= 200000) return 18000.00;
         return 45000.00; // for > 200000
       } 
       
       if (type === 'liniowka') {
-        if (numericAmount <= 0) return 0;
-        if (numericAmount <= 8000) return 314.96;
-        if (numericAmount <= 10000) return 490.00;
-        if (numericAmount <= 15000) return 735.00;
-        if (numericAmount <= 20000) return 980.00;
-        if (numericAmount <= 30000) return 1470.00;
-        if (numericAmount <= 40000) return 1960.00;
-        if (numericAmount <= 50000) return 2450.00;
-        if (numericAmount <= 60000) return 2940.00;
-        if (numericAmount <= 80000) return 3920.00;
-        if (numericAmount <= 100000) return 4900.00;
-        if (numericAmount <= 150000) return 7350.00;
-        if (numericAmount <= 200000) return 9800.00;
+        if (netAmount <= 0) return 0;
+        if (netAmount <= 8000) return 314.96;
+        if (netAmount <= 10000) return 490.00;
+        if (netAmount <= 15000) return 735.00;
+        if (netAmount <= 20000) return 980.00;
+        if (netAmount <= 30000) return 1470.00;
+        if (netAmount <= 40000) return 1960.00;
+        if (netAmount <= 50000) return 2450.00;
+        if (netAmount <= 60000) return 2940.00;
+        if (netAmount <= 80000) return 3920.00;
+        if (netAmount <= 100000) return 4900.00;
+        if (netAmount <= 150000) return 7350.00;
+        if (netAmount <= 200000) return 9800.00;
         return 24500.00; // for > 200000
       } 
       
@@ -91,33 +96,37 @@ const TaxCalculator = () => {
     
     // Future (2026) tax calculations
     if (year === 'future') {
+      // For future calculations, we need to consider expenses for all tax forms
+      // to determine the best option
+      const calculationAmount = type !== 'ryczalt' ? netAmount : numericAmount;
+      
       if (type === 'skala' || type === 'liniowka') {
-        if (numericAmount <= 0) return 0;
-        if (numericAmount <= 15000) return 314.96;
-        if (numericAmount <= 20000) return 662.86;
-        if (numericAmount <= 30000) return 1152.86;
-        if (numericAmount <= 40000) return 1642.86;
-        if (numericAmount <= 50000) return 2132.86;
-        if (numericAmount <= 60000) return 2622.86;
-        if (numericAmount <= 80000) return 3602.86;
-        if (numericAmount <= 100000) return 4582.86;
-        if (numericAmount <= 150000) return 7032.86;
-        if (numericAmount <= 200000) return 9482.86;
+        if (calculationAmount <= 0) return 0;
+        if (calculationAmount <= 15000) return 314.96;
+        if (calculationAmount <= 20000) return 662.86;
+        if (calculationAmount <= 30000) return 1152.86;
+        if (calculationAmount <= 40000) return 1642.86;
+        if (calculationAmount <= 50000) return 2132.86;
+        if (calculationAmount <= 60000) return 2622.86;
+        if (calculationAmount <= 80000) return 3602.86;
+        if (calculationAmount <= 100000) return 4582.86;
+        if (calculationAmount <= 150000) return 7032.86;
+        if (calculationAmount <= 200000) return 9482.86;
         return 24182.86; // for > 200000
       }
       
       if (type === 'ryczalt') {
-        if (numericAmount <= 0) return 0;
-        if (numericAmount <= 15000) return 314.96;
-        if (numericAmount <= 20000) return 314.96;
-        if (numericAmount <= 30000) return 461.96;
-        if (numericAmount <= 40000) return 811.96;
-        if (numericAmount <= 50000) return 1161.96;
-        if (numericAmount <= 60000) return 1511.96;
-        if (numericAmount <= 80000) return 2211.96;
-        if (numericAmount <= 100000) return 2911.96;
-        if (numericAmount <= 150000) return 4661.96;
-        if (numericAmount <= 200000) return 6411.96;
+        if (calculationAmount <= 0) return 0;
+        if (calculationAmount <= 15000) return 314.96;
+        if (calculationAmount <= 20000) return 314.96;
+        if (calculationAmount <= 30000) return 461.96;
+        if (calculationAmount <= 40000) return 811.96;
+        if (calculationAmount <= 50000) return 1161.96;
+        if (calculationAmount <= 60000) return 1511.96;
+        if (calculationAmount <= 80000) return 2211.96;
+        if (calculationAmount <= 100000) return 2911.96;
+        if (calculationAmount <= 150000) return 4661.96;
+        if (calculationAmount <= 200000) return 6411.96;
         return 16911.96; // for > 200000
       }
     }
@@ -125,10 +134,17 @@ const TaxCalculator = () => {
     return 0;
   };
 
-  const getBestFutureTaxForm = (income: number): { form: TaxFormType; amount: number } => {
-    const skalaAmount = calculateTax(income, 'skala', 'future');
-    const liniowkaAmount = calculateTax(income, 'liniowka', 'future');
-    const ryczaltAmount = calculateTax(income, 'ryczalt', 'future');
+  const getBestFutureTaxForm = (income: number, expenses: number): { form: TaxFormType; amount: number } => {
+    // For calculating the best form, we need to consider expenses for all tax forms
+    const netIncome = Math.max(0, income - expenses);
+    
+    // Calculate tax for each form using net income for scale and linear, 
+    // and gross income for ryczalt
+    const skalaAmount = calculateTax(income, expenses, 'skala', 'future');
+    const liniowkaAmount = calculateTax(income, expenses, 'liniowka', 'future');
+    
+    // For ryczalt in future, use the net income calculation to determine the best form
+    const ryczaltAmountForComparison = calculateTax(income, 0, 'ryczalt', 'future');
     
     let bestForm: TaxFormType = 'skala';
     let bestAmount = skalaAmount;
@@ -138,9 +154,9 @@ const TaxCalculator = () => {
       bestAmount = liniowkaAmount;
     }
     
-    if (ryczaltAmount < bestAmount) {
+    if (ryczaltAmountForComparison < bestAmount) {
       bestForm = 'ryczalt';
-      bestAmount = ryczaltAmount;
+      bestAmount = ryczaltAmountForComparison;
     }
     
     return { form: bestForm, amount: bestAmount };
@@ -150,22 +166,27 @@ const TaxCalculator = () => {
     if (!income || isNaN(Number(income)) || Number(income) < 0) {
       toast({
         title: "Błąd",
-        description: "Wprowadź prawidłową wartość dochodu.",
+        description: "Wprowadź prawidłową wartość przychodu.",
         variant: "destructive",
       });
       return;
     }
 
     const numericIncome = Number(income);
-    const currentTax = calculateTax(numericIncome, taxForm, 'current');
-    const futureTax = calculateTax(numericIncome, taxForm, 'future');
+    const numericExpenses = Number(expenses) || 0;
+    const netIncome = Math.max(0, numericIncome - numericExpenses);
+    
+    const currentTax = calculateTax(numericIncome, numericExpenses, taxForm, 'current');
+    const futureTax = calculateTax(numericIncome, numericExpenses, taxForm, 'future');
     const difference = futureTax - currentTax;
     const percentChange = currentTax > 0 ? (difference / currentTax) * 100 : 0;
     
-    const bestFuture = getBestFutureTaxForm(numericIncome);
+    const bestFuture = getBestFutureTaxForm(numericIncome, numericExpenses);
 
     setResult({
       income: numericIncome,
+      expenses: numericExpenses,
+      netIncome: netIncome,
       currentTax,
       futureTax,
       difference,
@@ -210,7 +231,7 @@ const TaxCalculator = () => {
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               <Label htmlFor="income" className="text-base font-medium mb-2 block">
-                Miesięczny przychód/dochód brutto (PLN)
+                Miesięczny przychód brutto (PLN)
               </Label>
               <div className="relative">
                 <CircleDollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -225,13 +246,35 @@ const TaxCalculator = () => {
             </div>
 
             <div>
+              <Label htmlFor="expenses" className="text-base font-medium mb-2 block">
+                Miesięczne koszty (PLN)
+              </Label>
+              <div className="relative">
+                <CircleDollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                <Input
+                  id="expenses"
+                  placeholder="np. 3000"
+                  className="pl-10"
+                  value={expenses}
+                  onChange={(e) => setExpenses(e.target.value)}
+                />
+              </div>
+              {taxForm === 'ryczalt' && (
+                <div className="mt-2 flex items-start gap-2 text-amber-600 text-sm">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>Przy ryczałcie koszty nie są obecnie brane pod uwagę przy wyliczaniu składki, ale będą wykorzystane w kalkulacji optymalnej formy na 2026.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
               <Label className="text-base font-medium mb-2 block">
                 Forma opodatkowania
               </Label>
               <RadioGroup
                 value={taxForm}
                 onValueChange={(value) => setTaxForm(value as TaxFormType)}
-                className="grid gap-3"
+                className="grid md:grid-cols-3 gap-3"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="skala" id="skala" />
@@ -277,11 +320,25 @@ const TaxCalculator = () => {
                       </thead>
                       <tbody>
                         <tr>
-                          <td className="table-cell">Miesięczny dochód</td>
+                          <td className="table-cell">Miesięczny przychód</td>
                           <td className="table-cell text-right">{formatCurrency(result.income)}</td>
                           <td className="table-cell text-right">{formatCurrency(result.income)}</td>
                           <td className="table-cell text-right">-</td>
                         </tr>
+                        <tr>
+                          <td className="table-cell">Miesięczne koszty</td>
+                          <td className="table-cell text-right">{formatCurrency(result.expenses)}</td>
+                          <td className="table-cell text-right">{formatCurrency(result.expenses)}</td>
+                          <td className="table-cell text-right">-</td>
+                        </tr>
+                        {taxForm !== 'ryczalt' && (
+                          <tr>
+                            <td className="table-cell">Dochód netto (podstawa)</td>
+                            <td className="table-cell text-right">{formatCurrency(result.netIncome)}</td>
+                            <td className="table-cell text-right">{formatCurrency(result.netIncome)}</td>
+                            <td className="table-cell text-right">-</td>
+                          </tr>
+                        )}
                         <tr>
                           <td className="table-cell">Forma opodatkowania</td>
                           <td className="table-cell text-right">{getTaxFormName(taxForm)}</td>
@@ -346,19 +403,19 @@ const TaxCalculator = () => {
                         <div className="flex justify-between py-1 border-b">
                           <span>Skala podatkowa:</span>
                           <span className={`font-medium ${result.bestFutureTaxForm === 'skala' ? 'text-green-600' : ''}`}>
-                            {formatCurrency(calculateTax(result.income, 'skala', 'future'))}
+                            {formatCurrency(calculateTax(result.income, result.expenses, 'skala', 'future'))}
                           </span>
                         </div>
                         <div className="flex justify-between py-1 border-b">
                           <span>Podatek liniowy:</span>
                           <span className={`font-medium ${result.bestFutureTaxForm === 'liniowka' ? 'text-green-600' : ''}`}>
-                            {formatCurrency(calculateTax(result.income, 'liniowka', 'future'))}
+                            {formatCurrency(calculateTax(result.income, result.expenses, 'liniowka', 'future'))}
                           </span>
                         </div>
                         <div className="flex justify-between py-1">
                           <span>Ryczałt:</span>
                           <span className={`font-medium ${result.bestFutureTaxForm === 'ryczalt' ? 'text-green-600' : ''}`}>
-                            {formatCurrency(calculateTax(result.income, 'ryczalt', 'future'))}
+                            {formatCurrency(calculateTax(result.income, 0, 'ryczalt', 'future'))}
                           </span>
                         </div>
                       </div>
