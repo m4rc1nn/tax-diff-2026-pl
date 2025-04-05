@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { CircleDollarSign, TrendingDown, TrendingUp } from 'lucide-react';
+import { CircleDollarSign, TrendingDown, TrendingUp, ArrowRight } from 'lucide-react';
 
 type TaxFormType = 'skala' | 'liniowka' | 'ryczalt';
 
@@ -18,6 +17,8 @@ interface TaxResult {
   futureTax: number;
   difference: number;
   percentChange: number;
+  bestFutureTaxForm?: TaxFormType;
+  bestFutureTaxAmount?: number;
 }
 
 const TaxCalculator = () => {
@@ -76,15 +77,15 @@ const TaxCalculator = () => {
         if (numericAmount <= 10000) return 769.43;
         if (numericAmount <= 15000) return 769.43;
         if (numericAmount <= 20000) return 769.43;
-        if (numericAmount <= 30000) return 1384.97;
-        if (numericAmount <= 40000) return 1384.97;
-        if (numericAmount <= 50000) return 1384.97;
-        if (numericAmount <= 60000) return 1384.97;
-        if (numericAmount <= 80000) return 1384.97;
-        if (numericAmount <= 100000) return 1384.97;
-        if (numericAmount <= 150000) return 1384.97;
-        if (numericAmount <= 200000) return 1384.97;
-        return 1384.97; // for > 200000
+        if (numericAmount <= 30000) return 769.43;
+        if (numericAmount <= 40000) return 769.43;
+        if (numericAmount <= 50000) return 769.43;
+        if (numericAmount <= 60000) return 769.43;
+        if (numericAmount <= 80000) return 769.43;
+        if (numericAmount <= 100000) return 769.43;
+        if (numericAmount <= 150000) return 769.43;
+        if (numericAmount <= 200000) return 769.43;
+        return 769.43; // for > 200000
       }
     }
     
@@ -124,6 +125,27 @@ const TaxCalculator = () => {
     return 0;
   };
 
+  const getBestFutureTaxForm = (income: number): { form: TaxFormType; amount: number } => {
+    const skalaAmount = calculateTax(income, 'skala', 'future');
+    const liniowkaAmount = calculateTax(income, 'liniowka', 'future');
+    const ryczaltAmount = calculateTax(income, 'ryczalt', 'future');
+    
+    let bestForm: TaxFormType = 'skala';
+    let bestAmount = skalaAmount;
+    
+    if (liniowkaAmount < bestAmount) {
+      bestForm = 'liniowka';
+      bestAmount = liniowkaAmount;
+    }
+    
+    if (ryczaltAmount < bestAmount) {
+      bestForm = 'ryczalt';
+      bestAmount = ryczaltAmount;
+    }
+    
+    return { form: bestForm, amount: bestAmount };
+  };
+
   const handleCalculate = () => {
     if (!income || isNaN(Number(income)) || Number(income) < 0) {
       toast({
@@ -139,6 +161,8 @@ const TaxCalculator = () => {
     const futureTax = calculateTax(numericIncome, taxForm, 'future');
     const difference = futureTax - currentTax;
     const percentChange = currentTax > 0 ? (difference / currentTax) * 100 : 0;
+    
+    const bestFuture = getBestFutureTaxForm(numericIncome);
 
     setResult({
       income: numericIncome,
@@ -146,6 +170,8 @@ const TaxCalculator = () => {
       futureTax,
       difference,
       percentChange,
+      bestFutureTaxForm: bestFuture.form,
+      bestFutureTaxAmount: bestFuture.amount
     });
 
     setShowResults(true);
@@ -158,21 +184,6 @@ const TaxCalculator = () => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
-  };
-
-  const getChartData = () => {
-    if (!result) return [];
-    
-    return [
-      {
-        name: 'Teraz',
-        wartość: result.currentTax,
-      },
-      {
-        name: '2026',
-        wartość: result.futureTax,
-      },
-    ];
   };
 
   const getTaxFormName = (form: TaxFormType): string => {
@@ -250,7 +261,7 @@ const TaxCalculator = () => {
               <Tabs defaultValue="tabela">
                 <TabsList className="mb-4">
                   <TabsTrigger value="tabela">Tabela</TabsTrigger>
-                  <TabsTrigger value="wykres">Wykres</TabsTrigger>
+                  <TabsTrigger value="optymalizacja">Co wybrać od 2026</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="tabela" className="space-y-4">
@@ -296,27 +307,62 @@ const TaxCalculator = () => {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="wykres">
-                  <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={getChartData()}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip 
-                          formatter={(value) => [formatCurrency(Number(value)), "Składka zdrowotna"]}
-                        />
-                        <Legend />
-                        <Bar 
-                          name="Składka zdrowotna" 
-                          dataKey="wartość" 
-                          fill={result.difference > 0 ? "#ef4444" : "#10b981"}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                <TabsContent value="optymalizacja">
+                  <div className="p-4 border rounded-md bg-gray-50">
+                    <h3 className="text-lg font-semibold mb-3">Optymalizacja od 2026 roku</h3>
+                    
+                    <div className="mb-4">
+                      <p className="mb-2">Twoja obecna forma opodatkowania: <span className="font-medium">{getTaxFormName(taxForm)}</span></p>
+                      <p className="mb-2">Składka zdrowotna od 2026 przy obecnej formie opodatkowania: <span className="font-medium">{formatCurrency(result.futureTax)}</span></p>
+                    </div>
+                    
+                    {result.bestFutureTaxForm !== taxForm ? (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                        <h4 className="text-base font-semibold flex items-center gap-1 text-green-700">
+                          <ArrowRight className="h-4 w-4" /> Zalecana zmiana formy opodatkowania
+                        </h4>
+                        <div className="mt-2 space-y-2">
+                          <p>Najkorzystniejsza forma opodatkowania od 2026: <span className="font-medium">{getTaxFormName(result.bestFutureTaxForm!)}</span></p>
+                          <p>Składka zdrowotna po zmianie: <span className="font-medium">{formatCurrency(result.bestFutureTaxAmount!)}</span></p>
+                          <p className="text-green-700 font-medium">
+                            Możesz zaoszczędzić: {formatCurrency(result.futureTax - result.bestFutureTaxAmount!)} miesięcznie
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <h4 className="text-base font-semibold text-blue-700 flex items-center gap-1">
+                          <ArrowRight className="h-4 w-4" /> Aktualna forma opodatkowania jest optymalna
+                        </h4>
+                        <p className="mt-2">
+                          Dla Twojego dochodu {getTaxFormName(taxForm)} będzie nadal najkorzystniejszą formą opodatkowania od 2026 roku.
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="mt-4">
+                      <h4 className="text-base font-semibold mb-2">Porównanie składek zdrowotnych od 2026</h4>
+                      <div className="grid gap-2">
+                        <div className="flex justify-between py-1 border-b">
+                          <span>Skala podatkowa:</span>
+                          <span className={`font-medium ${result.bestFutureTaxForm === 'skala' ? 'text-green-600' : ''}`}>
+                            {formatCurrency(calculateTax(result.income, 'skala', 'future'))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b">
+                          <span>Podatek liniowy:</span>
+                          <span className={`font-medium ${result.bestFutureTaxForm === 'liniowka' ? 'text-green-600' : ''}`}>
+                            {formatCurrency(calculateTax(result.income, 'liniowka', 'future'))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-1">
+                          <span>Ryczałt:</span>
+                          <span className={`font-medium ${result.bestFutureTaxForm === 'ryczalt' ? 'text-green-600' : ''}`}>
+                            {formatCurrency(calculateTax(result.income, 'ryczalt', 'future'))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
