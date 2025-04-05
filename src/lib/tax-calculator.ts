@@ -53,19 +53,19 @@ export const getBestFutureTaxForm = (income: number, expenses: number): { form: 
     let bestAmount = skalaAmount;
 
     if (liniowkaAmount < bestAmount) {
-        bestForm.push("liniowka");
+        bestForm = ["liniowka"];
         bestAmount = liniowkaAmount;
     }
     if (liniowkaAmount == bestAmount) {
-        bestForm.push("liniowka");
+        !bestForm.includes("liniowka") && bestForm.push("liniowka");
     }
 
     if (ryczaltAmount < bestAmount) {
-        bestForm.push("ryczalt");
+        bestForm = ["ryczalt"];
         bestAmount = ryczaltAmount;
     }
     if (ryczaltAmount == bestAmount) {
-        bestForm.push("ryczalt");
+        !bestForm.includes("ryczalt") && bestForm.push("ryczalt");
     }
 
     return { form: bestForm, amount: bestAmount };
